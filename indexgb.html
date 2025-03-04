@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Rutinas de Ejercicio</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="icono.png">
+</head>
+<body>
+    <div class="container">
+        <h1>Gestión de Rutinas</h1>
+        
+        <!-- Crear nueva rutina -->
+        <div class="form-container">
+            <input type="text" id="routine-name" placeholder="Nombre de la rutina">
+            <input type="text" id="routine-description" placeholder="Descripción">
+            <button class="add" onclick="createRoutine()">Crear Rutina</button>
+        </div>
+
+        <!-- Lista de rutinas -->
+        <h2>Mis Rutinas</h2>
+        <ul id="routine-list"></ul>
+
+        <!-- Sección para agregar ejercicios -->
+        <div id="exercise-section" class="hidden">
+            <h2 id="routine-title"></h2>
+            <p id="routine-desc"></p>
+
+            <div class="form-container">
+                <input type="text" id="exercise-name" placeholder="Nombre del ejercicio">
+                <select id="exercise-type">
+                    <option value="Cardio">Cardio</option>
+                    <option value="Fuerza">Fuerza</option>
+                    <option value="Flexibilidad">Flexibilidad</option>
+                </select>
+                <input type="number" id="exercise-duration" placeholder="Duración (min)">
+                <input type="number" id="exercise-reps" placeholder="Repeticiones">
+                <input type="number" id="exercise-sets" placeholder="Series">
+                <button class="add" onclick="addExercise()">Añadir</button>
+            </div>
+
+            <ul id="exercise-list"></ul>
+
+            <button class="delete" onclick="deleteRoutine()">Eliminar Rutina</button>
+        </div>
+    </div>
+
+    <script>
+        let routines = [];
+        let currentRoutineIndex = null;
+
+        function createRoutine() {
+            const name = document.getElementById("routine-name").value.trim();
+            const description = document.getElementById("routine-description").value.trim();
+
+            if (name === "" || description === "") {
+                alert("Por favor, ingrese el nombre y la descripción de la rutina.");
+                return;
+            }
+
+            const newRoutine = { name, description, exercises: [] };
+            routines.push(newRoutine);
+            updateRoutineList();
+        }
+
+        function updateRoutineList() {
+            const list = document.getElementById("routine-list");
+            list.innerHTML = "";
+
+            routines.forEach((routine, index) => {
+                let li = document.createElement("li");
+                li.innerHTML = `
+                    <span>${routine.name} - ${routine.description}</span>
+                    <button class="edit" onclick="selectRoutine(${index})">Ver</button>
+                    <button class="delete" onclick="deleteRoutine(${index})">Eliminar</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function selectRoutine(index) {
+            currentRoutineIndex = index;
+            const routine = routines[index];
+
+            document.getElementById("routine-title").textContent = `Rutina: ${routine.name}`;
+            document.getElementById("routine-desc").textContent = routine.description;
+            document.getElementById("exercise-section").classList.remove("hidden");
+
+            updateExerciseList();
+        }
+
+        function addExercise() {
+            if (currentRoutineIndex === null) {
+                alert("Selecciona una rutina primero.");
+                return;
+            }
+
+            const name = document.getElementById("exercise-name").value.trim();
+            const type = document.getElementById("exercise-type").value;
+            const duration = document.getElementById("exercise-duration").value;
+            const reps = document.getElementById("exercise-reps").value;
+            const sets = document.getElementById("exercise-sets").value;
+
+            if (name === "" || duration === "" || reps === "" || sets === "") {
+                alert("Complete todos los campos.");
+                return;
+            }
+
+            const exercise = { name, type, duration, reps, sets };
+            routines[currentRoutineIndex].exercises.push(exercise);
+
+            updateExerciseList();
+        }
+
+        function updateExerciseList() {
+            const list = document.getElementById("exercise-list");
+            list.innerHTML = "";
+
+            routines[currentRoutineIndex].exercises.forEach((exercise, index) => {
+                let li = document.createElement("li");
+                li.innerHTML = `
+                    <span>${exercise.name} - ${exercise.type} | ${exercise.duration} min | ${exercise.reps} rep | ${exercise.sets} sets</span>
+                    <button class="edit" onclick="editExercise(${index})">Editar</button>
+                    <button class="delete" onclick="deleteExercise(${index})">Eliminar</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function editExercise(index) {
+            const exercise = routines[currentRoutineIndex].exercises[index];
+            const newName = prompt("Nuevo nombre:", exercise.name);
+            const newDuration = prompt("Nueva duración (min):", exercise.duration);
+            const newReps = prompt("Nuevas repeticiones:", exercise.reps);
+            const newSets = prompt("Nuevas series:", exercise.sets);
+
+            if (newName && newDuration && newReps && newSets) {
+                routines[currentRoutineIndex].exercises[index] = {
+                    ...exercise,
+                    name: newName,
+                    duration: newDuration,
+                    reps: newReps,
+                    sets: newSets
+                };
+                updateExerciseList();
+            }
+        }
+
+        function deleteExercise(index) {
+            routines[currentRoutineIndex].exercises.splice(index, 1);
+            updateExerciseList();
+        }
+
+        function deleteRoutine(index) {
+            if (confirm("¿Seguro que deseas eliminar esta rutina?")) {
+                routines.splice(index, 1);
+                document.getElementById("exercise-section").classList.add("hidden");
+                updateRoutineList();
+            }
+        }
+    </script>
+</body>
+</html>
